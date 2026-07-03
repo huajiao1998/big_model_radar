@@ -50,6 +50,7 @@ const {
   enableWeb: ENABLE_WEB,
   enableTrending: ENABLE_TRENDING,
   enableHn: ENABLE_HN,
+  enableCliDigest: ENABLE_CLI_DIGEST,
 } = loadConfig();
 
 // ---------------------------------------------------------------------------
@@ -648,7 +649,9 @@ async function main(): Promise<void> {
       summary: zhSummaries.openclawSummary,
     };
     [comparison, peersComparison] = await Promise.all([
-      callLlm(buildComparisonPrompt(zhSummaries.cliDigests, dateStr, "zh")),
+      ENABLE_CLI_DIGEST
+        ? callLlm(buildComparisonPrompt(zhSummaries.cliDigests, dateStr, "zh"))
+        : Promise.resolve(""),
       callLlm(buildPeersComparisonPrompt(openclawDigest, zhSummaries.peerDigests, dateStr, "zh")),
     ]);
   }
@@ -661,7 +664,9 @@ async function main(): Promise<void> {
       summary: enSummaries.openclawSummary,
     };
     [enComparison, enPeersComparison] = await Promise.all([
-      callLlm(buildComparisonPrompt(enSummaries.cliDigests, dateStr, "en")),
+      ENABLE_CLI_DIGEST
+        ? callLlm(buildComparisonPrompt(enSummaries.cliDigests, dateStr, "en"))
+        : Promise.resolve(""),
       callLlm(buildPeersComparisonPrompt(enOpenclawDigest, enSummaries.peerDigests, dateStr, "en")),
     ]);
   }
@@ -671,15 +676,29 @@ async function main(): Promise<void> {
 
   // 4. Build + save all reports
   if (genZh && zhSummaries) {
-    const digestContent = buildCliReportContent(
-      zhSummaries.cliDigests,
-      zhSummaries.skillsSummary,
-      comparison,
-      utcStr,
-      dateStr,
-      footer,
-      "zh",
-    );
+    // CLI digest report (AI CLI 工具社区动态日报)
+    if (ENABLE_CLI_DIGEST) {
+      const digestContent = buildCliReportContent(
+        zhSummaries.cliDigests,
+        zhSummaries.skillsSummary,
+        comparison,
+        utcStr,
+        dateStr,
+        footer,
+        "zh",
+      );
+      console.log(`  Saved ${saveFile(digestContent, dateStr, "ai-cli.md")}`);
+      if (digestRepo) {
+        const cliUrl = await createGitHubIssue(
+          `📊 AI CLI 工具社区动态日报 ${dateStr}`,
+          digestContent,
+          "digest",
+        );
+        console.log(`  Created CLI issue (zh): ${cliUrl}`);
+      }
+    }
+
+    // OpenClaw ecosystem report (always runs)
     const openclawContent = buildOpenclawReportContent(
       fetchedOpenclaw,
       zhSummaries.peerDigests,
@@ -690,15 +709,8 @@ async function main(): Promise<void> {
       footer,
       "zh",
     );
-    console.log(`  Saved ${saveFile(digestContent, dateStr, "ai-cli.md")}`);
     console.log(`  Saved ${saveFile(openclawContent, dateStr, "ai-agents.md")}`);
     if (digestRepo) {
-      const cliUrl = await createGitHubIssue(
-        `📊 AI CLI 工具社区动态日报 ${dateStr}`,
-        digestContent,
-        "digest",
-      );
-      console.log(`  Created CLI issue (zh): ${cliUrl}`);
       const openclawUrl = await createGitHubIssue(
         `🦞 OpenClaw 生态日报 ${dateStr}`,
         openclawContent,
@@ -708,15 +720,29 @@ async function main(): Promise<void> {
     }
   }
   if (genEn && enSummaries) {
-    const enDigestContent = buildCliReportContent(
-      enSummaries.cliDigests,
-      enSummaries.skillsSummary,
-      enComparison,
-      utcStr,
-      dateStr,
-      enFooter,
-      "en",
-    );
+    // CLI digest report (English)
+    if (ENABLE_CLI_DIGEST) {
+      const enDigestContent = buildCliReportContent(
+        enSummaries.cliDigests,
+        enSummaries.skillsSummary,
+        enComparison,
+        utcStr,
+        dateStr,
+        enFooter,
+        "en",
+      );
+      console.log(`  Saved ${saveFile(enDigestContent, dateStr, "ai-cli-en.md")}`);
+      if (digestRepo) {
+        const cliEnUrl = await createGitHubIssue(
+          `📊 AI CLI Tools Digest ${dateStr}`,
+          enDigestContent,
+          "digest-en",
+        );
+        console.log(`  Created CLI issue (en): ${cliEnUrl}`);
+      }
+    }
+
+    // OpenClaw ecosystem report (English, always runs)
     const enOpenclawContent = buildOpenclawReportContent(
       fetchedOpenclaw,
       enSummaries.peerDigests,
@@ -727,15 +753,8 @@ async function main(): Promise<void> {
       enFooter,
       "en",
     );
-    console.log(`  Saved ${saveFile(enDigestContent, dateStr, "ai-cli-en.md")}`);
     console.log(`  Saved ${saveFile(enOpenclawContent, dateStr, "ai-agents-en.md")}`);
     if (digestRepo) {
-      const cliEnUrl = await createGitHubIssue(
-        `📊 AI CLI Tools Digest ${dateStr}`,
-        enDigestContent,
-        "digest-en",
-      );
-      console.log(`  Created CLI issue (en): ${cliEnUrl}`);
       const openclawEnUrl = await createGitHubIssue(
         `🦞 OpenClaw Ecosystem Digest ${dateStr}`,
         enOpenclawContent,
