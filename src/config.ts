@@ -27,6 +27,7 @@ interface RawConfig {
   enable_web_report?: boolean;
   enable_trending_report?: boolean;
   enable_hn_report?: boolean;
+  enable_cli_digest?: boolean;
 }
 
 export interface RadarConfig {
@@ -37,6 +38,7 @@ export interface RadarConfig {
   enableWeb: boolean;
   enableTrending: boolean;
   enableHn: boolean;
+  enableCliDigest: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -96,6 +98,7 @@ export function loadConfig(configPath = "config.yml"): RadarConfig {
       enableWeb: true,
       enableTrending: true,
       enableHn: true,
+      enableCliDigest: true,
     };
   }
 
@@ -126,6 +129,7 @@ export function loadConfig(configPath = "config.yml"): RadarConfig {
   const enableWeb = raw?.enable_web_report !== false;
   const enableTrend = raw?.enable_trending_report !== false;
   const enableHn = raw?.enable_hn_report !== false;
+  const enableCliDigest = raw?.enable_cli_digest !== false;
 
   return {
     cliRepos,
@@ -135,5 +139,6 @@ export function loadConfig(configPath = "config.yml"): RadarConfig {
     enableWeb,
     enableTrending: enableTrend,
     enableHn,
+    enableCliDigest,
   };
 }
