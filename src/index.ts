@@ -568,9 +568,11 @@ async function main(): Promise<void> {
   const genEn = enabledLangs.includes("en");
   console.log(`  Languages: ${enabledLangs.join(", ")}`);
 
-  // 1. Fetch all data in parallel
-  const webState = loadWebState();
-  let { fetched, skillsData, webResults, trendingData, hnData } = await fetchAllData(since, webState);
+	  // 1. Fetch all data in parallel
+	  const webState = loadWebState();
+	  const _allData = await fetchAllData(since, webState);
+	  const { fetched, skillsData } = _allData;
+	  let { webResults, trendingData, hnData } = _allData;
 
   // Apply report toggles from config.yml
   if (!ENABLE_WEB) {
