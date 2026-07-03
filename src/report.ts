@@ -60,11 +60,11 @@ export function getLlmBaseUrl(): string {
     process.env["OPENAI_BASE_URL"] ??
     process.env["ANTHROPIC_BASE_URL"] ??
     DEFAULT_OPENAI_BASE_URL
-  ).replace(/\/$/, "");
+  ).replace(/\/$/, "").trim();
 }
 
 function getLlmModel(): string {
-  return process.env["OPENAI_MODEL"] ?? process.env["ANTHROPIC_MODEL"] ?? DEFAULT_MODEL;
+  return (process.env["OPENAI_MODEL"] ?? process.env["ANTHROPIC_MODEL"] ?? DEFAULT_MODEL).trim();
 }
 
 export function hasLlmCredentials(): boolean {
