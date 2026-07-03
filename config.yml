@@ -5,9 +5,9 @@
 
 
 # 报告开关（默认 true）
-enable_web_report: false
-enable_trending_report: false
-enable_hn_report: false
+    enable_web_report: false
+    enable_trending_report: false
+    enable_hn_report: false
 
 
 # ── AI CLI tools ──────────────────────────────────────────────────────────────
