@@ -6,7 +6,14 @@
     <description>AI 开源生态每日简报 · Daily AI ecosystem digest</description>
     <language>zh-CN</language>
     <atom:link href="https://w409401768.github.io/big_model_radar/feed.xml" rel="self" type="application/rss+xml"/>
-    <lastBuildDate>Fri, 10 Jul 2026 22:55:10 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 11 Jul 2026 22:41:37 +0000</lastBuildDate>
+    <item>
+      <title>AI Agents 生态日报 2026-07-12</title>
+      <link>https://w409401768.github.io/big_model_radar/#2026-07-12/ai-agents</link>
+      <guid isPermaLink="true">https://w409401768.github.io/big_model_radar/#2026-07-12/ai-agents</guid>
+      <pubDate>Sun, 12 Jul 2026 00:00:00 +0000</pubDate>
+      <description>AI Agents 生态日报 2026-07-12</description>
+    </item>
     <item>
       <title>AI Agents 生态日报 2026-07-11</title>
       <link>https://w409401768.github.io/big_model_radar/#2026-07-11/ai-agents</link>
@@ -209,13 +216,6 @@
       <guid isPermaLink="true">https://w409401768.github.io/big_model_radar/#2026-05-25/ai-weekly</guid>
       <pubDate>Mon, 25 May 2026 00:00:00 +0000</pubDate>
       <description>AI 工具生态周报 2026-05-25</description>
-    </item>
-    <item>
-      <title>AI CLI 工具社区动态日报 2026-05-24</title>
-      <link>https://w409401768.github.io/big_model_radar/#2026-05-24/ai-cli</link>
-      <guid isPermaLink="true">https://w409401768.github.io/big_model_radar/#2026-05-24/ai-cli</guid>
-      <pubDate>Sun, 24 May 2026 00:00:00 +0000</pubDate>
-      <description>AI CLI 工具社区动态日报 2026-05-24</description>
     </item>
   </channel>
 </rss>
