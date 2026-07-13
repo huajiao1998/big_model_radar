@@ -53,7 +53,7 @@ openclaw_peers:
     repo: NousResearch/hermes-agent
     name: hermes-agent
     paginated: true
-    - id: AstrBot
+    - id: astraot
     repo: AstrBotDevs/AstrBot
     name: AstrBot
     paginated: true
