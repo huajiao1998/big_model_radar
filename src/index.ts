@@ -89,7 +89,9 @@ async function fetchAllData(
   trendingData: TrendingData;
   hnData: HnData;
 }> {
-  const allConfigs = [...CLI_REPOS, OPENCLAW, ...OPENCLAW_PEERS];
+  const allConfigs = ENABLE_CLI_DIGEST
+    ? [...CLI_REPOS, OPENCLAW, ...OPENCLAW_PEERS]
+    : [OPENCLAW, ...OPENCLAW_PEERS];
   console.log(`  Tracking: ${allConfigs.map((r) => r.id).join(", ")}, claude-code-skills, web, hn`);
 
   const [fetched, skillsData, webResults, trendingData, hnData] = await Promise.all([
@@ -107,10 +109,12 @@ async function fetchAllData(
         return { cfg, issues, prs, releases };
       }),
     ),
-    fetchSkillsData(CLAUDE_SKILLS_REPO).then((d) => {
-      console.log(`  [claude-code-skills] prs: ${d.prs.length}, issues: ${d.issues.length}`);
-      return d;
-    }),
+    ENABLE_CLI_DIGEST
+      ? fetchSkillsData(CLAUDE_SKILLS_REPO).then((d) => {
+          console.log(`  [claude-code-skills] prs: ${d.prs.length}, issues: ${d.issues.length}`);
+          return d;
+        })
+      : Promise.resolve({ prs: [], issues: [] }),
     Promise.all([
       fetchSiteContent("anthropic", webState).catch((err): WebFetchResult => {
         console.error(`  [web/anthropic] fetch failed: ${err}`);
@@ -175,29 +179,31 @@ async function generateSummaries(
   const trendingFailed = lang === "en" ? "⚠️ Trending report generation failed." : "⚠️ 趋势报告生成失败。";
 
   const [cliDigests, openclawSummary, skillsSummary, peerDigests, trendingSummary] = await Promise.all([
-    Promise.all(
-      fetchedCli.map(async ({ cfg, issues, prs, releases }): Promise<RepoDigest> => {
-        const hasData = issues.length || prs.length || releases.length;
-        if (!hasData) {
-          console.log(`  [${cfg.id}] No activity, skipping LLM call`);
-          return { config: cfg, issues, prs, releases, summary: noActivity };
-        }
-        console.log(`  [${cfg.id}] Calling LLM for summary...`);
-        try {
-          const summary = await callLlm(buildCliPrompt(cfg, issues, prs, releases, dateStr, lang));
-          return { config: cfg, issues, prs, releases, summary };
-        } catch (err) {
-          console.error(`  [${cfg.id}] LLM call failed: ${err}`);
-          return {
-            config: cfg,
-            issues,
-            prs,
-            releases,
-            summary: summaryFailed,
-          };
-        }
-      }),
-    ),
+    ENABLE_CLI_DIGEST
+      ? Promise.all(
+          fetchedCli.map(async ({ cfg, issues, prs, releases }): Promise<RepoDigest> => {
+            const hasData = issues.length || prs.length || releases.length;
+            if (!hasData) {
+              console.log(`  [${cfg.id}] No activity, skipping LLM call`);
+              return { config: cfg, issues, prs, releases, summary: noActivity };
+            }
+            console.log(`  [${cfg.id}] Calling LLM for summary...`);
+            try {
+              const summary = await callLlm(buildCliPrompt(cfg, issues, prs, releases, dateStr, lang));
+              return { config: cfg, issues, prs, releases, summary };
+            } catch (err) {
+              console.error(`  [${cfg.id}] LLM call failed: ${err}`);
+              return {
+                config: cfg,
+                issues,
+                prs,
+                releases,
+                summary: summaryFailed,
+              };
+            }
+          }),
+        )
+      : Promise.resolve([] as RepoDigest[]),
     (async () => {
       const { cfg, issues, prs, releases } = fetchedOpenclaw;
       const hasData = issues.length || prs.length || releases.length;
@@ -213,15 +219,17 @@ async function generateSummaries(
         return summaryFailed;
       }
     })(),
-    (async () => {
-      console.log("  [claude-code-skills] Calling LLM for skills report...");
-      try {
-        return await callLlm(buildSkillsPrompt(skillsData.prs, skillsData.issues, dateStr, lang));
-      } catch (err) {
-        console.error(`  [claude-code-skills] LLM call failed: ${err}`);
-        return skillsFailed;
-      }
-    })(),
+    ENABLE_CLI_DIGEST
+      ? (async () => {
+          console.log("  [claude-code-skills] Calling LLM for skills report...");
+          try {
+            return await callLlm(buildSkillsPrompt(skillsData.prs, skillsData.issues, dateStr, lang));
+          } catch (err) {
+            console.error(`  [claude-code-skills] LLM call failed: ${err}`);
+            return skillsFailed;
+          }
+        })()
+      : Promise.resolve(""),
     Promise.all(
       fetchedPeers.map(async ({ cfg, issues, prs, releases }): Promise<RepoDigest> => {
         const hasData = issues.length || prs.length || releases.length;
