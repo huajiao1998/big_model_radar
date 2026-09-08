@@ -1,37 +1,37 @@
 # Big Model Radar
 
-English | [中文](./README.zh.md)
+[English](./README.en.md) | 中文
 
-A GitHub Actions workflow that runs every morning at 08:00 CST. It tracks GitHub activity from AI CLI tools, OpenClaw and its peer projects in the AI agent ecosystem, scrapes official news and research from Anthropic and OpenAI, and monitors the GitHub AI trending repos daily — then publishes bilingual (Chinese + English) daily digests as GitHub Issues and committed Markdown files. Weekly and monthly rollup reports are also generated automatically.
+每天早上 08:00 CST 自动运行的 GitHub Actions 工作流。追踪主流 AI CLI 工具的 GitHub 动态、OpenClaw 及其同赛道项目的生态活动、Anthropic 和 OpenAI 官网最新资讯，并每日监测 GitHub AI 热门仓库趋势，以中英双语每日简报的形式发布为 GitHub Issues 并提交为 Markdown 文件。每周和每月自动生成汇总报告。
 
 ## Web UI
 
 **[https://gsscsd.github.io/big_model_radar](https://gsscsd.github.io/big_model_radar)**
 
-Browse all historical digests in a clean, dark-themed interface — no login required. Reports are rendered from the Markdown files in this repo via GitHub Pages.
+在线浏览所有历史简报，深色主题，无需登录。报告直接由本仓库的 Markdown 文件通过 GitHub Pages 渲染。每份报告支持中文 / 英文切换。
 
-## RSS Feed
+## RSS 订阅
 
 **[https://gsscsd.github.io/big_model_radar/feed.xml](https://gsscsd.github.io/big_model_radar/feed.xml)**
 
-Subscribe in any RSS reader (Feedly, Reeder, NewsBlur, etc.) to receive new digests automatically. The feed includes the latest 30 reports across all report types, updated daily alongside `manifest.json`.
+在任意 RSS 阅读器（Feedly、Reeder、NewsBlur 等）中订阅，每日自动推送新简报。Feed 包含最新 30 条报告（覆盖所有报告类型），与 `manifest.json` 同步更新。
 
 ## MCP Server
 
 **`https://big-model-radar-mcp.<your-subdomain>.workers.dev`**
 
-A hosted [Model Context Protocol](https://modelcontextprotocol.io) server that exposes Big Model Radar data as tools. Any MCP-compatible client (Claude Desktop, OpenClaw, etc.) can query the latest AI ecosystem reports directly.
+基于 [Model Context Protocol](https://modelcontextprotocol.io) 的托管服务，将 Big Model Radar 数据暴露为工具接口。任何支持 MCP 的客户端（Claude Desktop、OpenClaw 等）均可直接查询最新 AI 生态报告。
 
-**Available tools:**
+**可用工具：**
 
-| Tool | Description |
-|------|-------------|
-| `list_reports` | List available dates and report types (last N days) |
-| `get_latest` | Fetch the most recent report of a given type |
-| `get_report` | Fetch a specific report by date and type |
-| `search` | Keyword search across recent reports |
+| 工具 | 说明 |
+|------|------|
+| `list_reports` | 列出最近 N 天的可用日期和报告类型 |
+| `get_latest` | 获取某类报告的最新一期 |
+| `get_report` | 按日期和类型精确获取报告 |
+| `search` | 关键词搜索最近 N 天的报告 |
 
-**Claude Desktop setup** — add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+**Claude Desktop 接入** — 编辑 `~/Library/Application Support/Claude/claude_desktop_config.json`：
 
 ```json
 {
@@ -43,18 +43,18 @@ A hosted [Model Context Protocol](https://modelcontextprotocol.io) server that e
 }
 ```
 
-Restart Claude Desktop after saving. You can then ask Claude things like:
-- *"What's the latest in AI CLI tools?"* → calls `get_latest`
-- *"Search for Claude Code mentions this week"* → calls `search`
-- *"Show me the AI trending report for 2026-03-05"* → calls `get_report`
+保存后重启 Claude Desktop，即可直接提问：
+- *"最近 AI CLI 工具有什么动态？"* → 调用 `get_latest`
+- *"搜索本周提到 Claude Code 的报告"* → 调用 `search`
+- *"获取 2026-03-05 的 GitHub 趋势报告"* → 调用 `get_report`
 
-**OpenClaw setup** — run the following command:
+**OpenClaw 接入** — 执行以下命令：
 
 ```bash
 openclaw mcp add --transport http big-model-radar https://big-model-radar-mcp.<your-subdomain>.workers.dev
 ```
 
-Or add it manually to `~/.openclaw/openclaw.json`:
+或手动编辑 `~/.openclaw/openclaw.json`：
 
 ```json
 {
@@ -67,12 +67,12 @@ Or add it manually to `~/.openclaw/openclaw.json`:
 }
 ```
 
-You can then ask OpenClaw things like:
-- *"What's the latest in AI CLI tools?"* → calls `get_latest`
-- *"Search for Claude Code mentions this week"* → calls `search`
-- *"Show me the AI trending report for 2026-03-05"* → calls `get_report`
+配置完成后即可在 OpenClaw 中直接提问：
+- *"最近 AI CLI 工具有什么动态？"* → 调用 `get_latest`
+- *"搜索本周提到 Claude Code 的报告"* → 调用 `search`
+- *"获取 2026-03-05 的 GitHub 趋势报告"* → 调用 `get_report`
 
-**Self-hosting** — deploy your own instance from the `mcp/` directory:
+**自托管** — 从 `mcp/` 目录部署自己的实例：
 
 ```bash
 cd mcp
@@ -80,18 +80,18 @@ pnpm install
 wrangler deploy
 ```
 
-## Telegram Channel
+## Telegram 频道
 
 **[t.me/agents_radar](https://t.me/agents_radar)**
 
-Subscribe to get daily digest notifications pushed directly to Telegram. Each message links to all reports for that day (ZH and EN variants) plus the Web UI and RSS feed.
+订阅 Telegram 频道，每日简报生成后自动推送通知，附带所有报告的直达链接（中文 / 英文）。
 
-## Tracked sources
+## 追踪来源
 
-### AI CLI tools (GitHub)
+### AI CLI 工具（GitHub）
 
-| Tool | Repository |
-|------|-----------|
+| 工具 | 仓库 |
+|------|------|
 | Claude Code | [anthropics/claude-code](https://github.com/anthropics/claude-code) |
 | OpenAI Codex | [openai/codex](https://github.com/openai/codex) |
 | Gemini CLI | [google-gemini/gemini-cli](https://github.com/google-gemini/gemini-cli) |
@@ -100,20 +100,20 @@ Subscribe to get daily digest notifications pushed directly to Telegram. Each me
 | OpenCode | [anomalyco/opencode](https://github.com/anomalyco/opencode) |
 | Qwen Code | [QwenLM/qwen-code](https://github.com/QwenLM/qwen-code) |
 
-### Claude Code Skills (GitHub)
+### Claude Code Skills（GitHub）
 
-| Source | Repository |
-|--------|-----------|
+| 来源 | 仓库 |
+|------|------|
 | Claude Code Skills | [anthropics/skills](https://github.com/anthropics/skills) |
 
-PRs and issues are fetched without a date filter and sorted by popularity (comment count), so the report always reflects the most actively discussed skills — not just the newest.
+PR 和 Issue 不设时间过滤，按社区热度（评论数）排序，报告始终反映当前最活跃的 Skills 讨论，而非仅看最新内容。
 
-### OpenClaw + AI agent ecosystem (GitHub)
+### OpenClaw + AI Agent 生态（GitHub）
 
-OpenClaw is tracked as the primary reference project. Ten peer projects in the personal AI assistant / autonomous agent space are tracked alongside it for cross-ecosystem comparison.
+OpenClaw 作为重点追踪项目，同时横向对比 10 个同赛道项目，覆盖个人 AI 助手 / 自主 Agent 方向。
 
-| Project | Repository | Stars |
-|---------|-----------|-------|
+| 项目 | 仓库 | Stars |
+|------|------|-------|
 | OpenClaw | [openclaw/openclaw](https://github.com/openclaw/openclaw) | 240.5k |
 | NanoBot | [HKUDS/nanobot](https://github.com/HKUDS/nanobot) | 26.9k |
 | Zeroclaw | [zeroclaw-labs/zeroclaw](https://github.com/zeroclaw-labs/zeroclaw) | 21.2k |
@@ -126,102 +126,102 @@ OpenClaw is tracked as the primary reference project. Ten peer projects in the p
 | ZeptoClaw | [qhkm/zeptoclaw](https://github.com/qhkm/zeptoclaw) | 394 |
 | EasyClaw | [gaoyangz77/easyclaw](https://github.com/gaoyangz77/easyclaw) | 102 |
 
-### GitHub AI Trending
+### GitHub AI 趋势热榜
 
-Two data sources are fetched in parallel every day:
+每天并行获取两个数据源：
 
-| Source | Details |
-|--------|---------|
-| [github.com/trending](https://github.com/trending?since=daily) | Today's trending repos — parsed from HTML; includes today's new star count |
-| GitHub Search API | Repos active in the last 7 days matching 6 AI topics: `llm`, `ai-agent`, `rag`, `vector-database`, `large-language-model`, `machine-learning` |
+| 来源 | 说明 |
+|------|------|
+| [github.com/trending](https://github.com/trending?since=daily) | 今日热榜，HTML 解析，含今日新增 Stars 数 |
+| GitHub Search API | 7 天内活跃的 AI 相关仓库，覆盖 6 个主题标签：`llm`、`ai-agent`、`rag`、`vector-database`、`large-language-model`、`machine-learning` |
 
-The LLM filters out non-AI repos from the trending list, classifies the rest by dimension (AI infrastructure / agents / applications / models / RAG), and extracts trend signals.
+LLM 负责过滤非 AI 项目，将结果按维度分类（AI 基础工具 / AI 智能体 / AI 应用 / 大模型 / RAG 知识库），并提炼趋势信号。
 
 ### Hacker News
 
-Top AI stories from the last 24 hours, fetched via the [Algolia HN Search API](https://hn.algolia.com/api). Six queries run in parallel (`AI`, `LLM`, `Claude`, `OpenAI`, `Anthropic`, `machine learning`), results are deduplicated and ranked by points. The top 30 stories are passed to the LLM for analysis.
+通过 [Algolia HN Search API](https://hn.algolia.com/api) 并行执行 6 个查询（`AI`、`LLM`、`Claude`、`OpenAI`、`Anthropic`、`machine learning`），抓取过去 24 小时内的 AI 相关帖子，去重后按分数排序，取 top 30 传入 LLM 进行社区情绪分析。
 
-### Official web content (sitemap-based)
+### 官网内容（基于 Sitemap）
 
-| Organization | Site | Tracked sections |
-|---|---|---|
-| Anthropic | [anthropic.com](https://www.anthropic.com) | `/news/`, `/research/`, `/engineering/`, `/learn/` |
-| OpenAI | [openai.com](https://openai.com) | research, publication, release, company, engineering, milestone, learn-guides, safety, product |
+| 组织 | 网站 | 追踪板块 |
+|------|------|---------|
+| Anthropic | [anthropic.com](https://www.anthropic.com) | `/news/`、`/research/`、`/engineering/`、`/learn/` |
+| OpenAI | [openai.com](https://openai.com) | research、publication、release、company、engineering、milestone、learn-guides、safety、product |
 
-New articles are detected by comparing sitemap `lastmod` timestamps against a persisted state file (`digests/web-state.json`). On the **first run**, up to 25 recent articles per site are fetched and a comprehensive overview report is generated. On subsequent runs, only new or updated URLs trigger a report; if nothing changed, the web report step is skipped entirely.
+通过对比 Sitemap 中的 `lastmod` 时间戳与持久化状态文件（`digests/web-state.json`）来检测新文章。**首次运行**时，每个站点最多抓取 25 篇近期文章并生成全量概览报告；后续运行仅处理新增或更新的 URL，无新内容则跳过网页报告步骤。
 
-## Features
+## 功能特性
 
-- Fetches issues, pull requests, and releases updated in the last 24 hours across all tracked repos
-- Tracks trending Claude Code Skills — sorted by community engagement, not recency
-- Generates a per-tool summary for each CLI repository and a cross-tool comparative analysis
-- Generates a deep OpenClaw project report plus a cross-ecosystem comparison against 10 peer projects
-- Scrapes official Anthropic and OpenAI web content via sitemaps; detects new articles incrementally
-- Monitors GitHub Trending daily + searches 6 AI topic tags; classifies repos by dimension and extracts trend signals
-- Fetches top-30 AI stories from Hacker News (last 24h, ranked by points); generates community sentiment report
-- Publishes GitHub Issues for each report type; commits Markdown files to `digests/YYYY-MM-DD/`
-- Runs on a daily schedule via GitHub Actions; supports manual triggering
-- All tracked repositories are configurable via `config.yml` — no code changes needed
+- 抓取所有追踪仓库过去 24 小时内更新的 Issues、PR 和 Releases
+- 追踪热门 Claude Code Skills，按社区参与度而非时间排序
+- 为每个 CLI 仓库生成单独摘要，并输出跨工具横向对比分析
+- 生成 OpenClaw 深度项目报告，并与 10 个同赛道项目进行横向对比
+- 通过 Sitemap 抓取 Anthropic 和 OpenAI 官网内容，增量检测新文章
+- 每日监测 GitHub Trending + 搜索 6 个 AI 主题标签，按维度分类并提炼趋势信号
+- 抓取 Hacker News 过去 24 小时 AI 热门帖子（top 30，按分数排序），生成社区情绪报告
+- 以 GitHub Issues 形式发布报告，同时提交 Markdown 文件至 `digests/YYYY-MM-DD/`
+- 每日通过 GitHub Actions 定时运行，支持手动触发
+- 所有追踪仓库均可通过 `config.yml` 配置，无需修改代码
 
-## Setup
+## 部署配置
 
-### 1. Fork this repository
+### 1. Fork 本仓库
 
-### 2. Customize `config.yml` (optional)
+### 2. 自定义 `config.yml`（可选）
 
-Edit `config.yml` in the repo root to add, remove, or replace the tracked repositories. The file is fully commented. No code changes are needed — the pipeline reads it on every run and falls back to built-in defaults if the file is absent.
+编辑仓库根目录的 `config.yml`，可增删或替换追踪的仓库。文件内有详细注释，每次工作流运行时自动读取，无需改代码。若文件不存在则使用内置默认值。
 
 ```yaml
-# Add a new CLI tool
+# 添加新的 CLI 工具
 cli_repos:
   - id: my-tool
     repo: owner/my-ai-cli
     name: My AI Tool
 
-# Add a new peer project to the OpenClaw ecosystem comparison
+# 添加新的同赛道对比项目
 openclaw_peers:
   - id: my-agent
     repo: owner/my-agent
     name: My Agent
 ```
 
-### 3. Add Secrets
+### 3. 添加 Secrets
 
-Go to **Settings → Secrets and variables → Actions** and add:
+进入 **Settings → Secrets and variables → Actions**，添加以下密钥：
 
-| Secret | Required | Description |
-|--------|----------|-------------|
-| `OPENAI_API_KEY` | ✅ | API key for any OpenAI-compatible endpoint |
-| `OPENAI_BASE_URL` | optional | API endpoint override. Leave unset for OpenAI, or set a compatible provider URL such as `https://api.openai.com/v1` |
-| `OPENAI_MODEL` | optional | Model name passed to `chat/completions`, e.g. `gpt-4.1-mini` |
-| `REPORT_LANGS` | optional | Report languages, e.g. `zh` or `zh,en` (default: `zh`) |
-| `PAGES_URL` | recommended | Public site base URL, e.g. `https://your-user.github.io/big_model_radar`. Prefer a repository variable for this |
-| `TELEGRAM_BOT_TOKEN` | optional | Telegram bot token from [@BotFather](https://t.me/BotFather). If set, a message is sent after each digest run |
-| `TELEGRAM_CHAT_ID` | optional | Telegram chat/channel/group ID to send notifications to. Required if you enable Telegram notifications |
+| Secret | 必填 | 说明 |
+|--------|------|------|
+| `OPENAI_API_KEY` | ✅ | 任意 OpenAI 兼容接口的 API 密钥 |
+| `OPENAI_BASE_URL` | 可选 | API 地址覆盖。使用 OpenAI 默认接口可留空，或设置兼容服务地址，如 `https://api.openai.com/v1` |
+| `OPENAI_MODEL` | 可选 | 传给 `chat/completions` 的模型名，例如 `gpt-4.1-mini` |
+| `REPORT_LANGS` | 可选 | 报告语言，例如 `zh` 或 `zh,en`（默认：`zh`） |
+| `PAGES_URL` | 建议配置 | 站点公开地址，例如 `https://your-user.github.io/big_model_radar`。建议放在仓库 Variables 中 |
+| `TELEGRAM_BOT_TOKEN` | 可选 | Telegram bot token，从 [@BotFather](https://t.me/BotFather) 获取。设置后每次 digest 完成自动推送通知 |
+| `TELEGRAM_CHAT_ID` | 可选 | 接收通知的 Telegram 频道 / 群组 / 用户 ID。启用 Telegram 推送时必须配置 |
 
-> `GITHUB_TOKEN` is provided automatically by GitHub Actions.
+> `GITHUB_TOKEN` 由 GitHub Actions 自动提供，无需手动添加。
 >
-> Backward compatibility: `ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL`, and `ANTHROPIC_MODEL` are still accepted as aliases, but new setups should use `OPENAI_*`.
+> 向后兼容：`ANTHROPIC_API_KEY`、`ANTHROPIC_BASE_URL`、`ANTHROPIC_MODEL` 仍可作为别名使用，但新的配置建议统一改用 `OPENAI_*`。
 
-**Setting up Telegram notifications** (optional):
-1. Message [@BotFather](https://t.me/BotFather) on Telegram, create a bot, and copy the token
-2. Add the bot to your channel/group, or start a DM with it
-3. Get the chat ID via [@userinfobot](https://t.me/userinfobot) or the [getUpdates](https://core.telegram.org/bots/api#getupdates) API
-4. Add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` as repository secrets
-5. Add `PAGES_URL` as a repository variable under **Settings → Secrets and variables → Actions → Variables**
+**配置 Telegram 推送**（可选）：
+1. 向 [@BotFather](https://t.me/BotFather) 创建 bot，复制 token
+2. 将 bot 加入频道 / 群组，或直接与 bot 私聊
+3. 通过 [@userinfobot](https://t.me/userinfobot) 获取 chat ID
+4. 在仓库 Secrets 中添加 `TELEGRAM_BOT_TOKEN` 和 `TELEGRAM_CHAT_ID`
+5. 在 **Settings → Secrets and variables → Actions → Variables** 中添加 `PAGES_URL`
 
-> If neither secret is set, the notification step is silently skipped.
-> If `PAGES_URL` is unset, the site URL is derived from `owner/repo` as `https://owner.github.io/repo`.
+> 两个 secret 均未设置时，通知步骤静默跳过，不影响正常运行。
+> 若未设置 `PAGES_URL`，程序会按 `owner/repo` 自动推导为 `https://owner.github.io/repo`。
 
-### 3. Enable the workflow
+### 3. 启用工作流
 
-Confirm the workflow is enabled in the **Actions** tab.
+在 **Actions** 标签页中确认工作流已启用。
 
-To test immediately, go to **Actions → Daily Big Model Radar → Run workflow**.
+如需立即测试，进入 **Actions → Daily Big Model Radar → Run workflow** 手动触发。
 
-> **First run note**: The web content step will fetch up to 50 articles (25 per site) and may take a few extra minutes. Subsequent runs are fast — only new articles are processed.
+> **首次运行说明**：网页内容步骤将抓取最多 50 篇文章（每站 25 篇），可能需要额外几分钟。后续运行仅处理新内容，速度更快。
 
-## Running locally
+## 本地运行
 
 ```bash
 pnpm install
@@ -231,61 +231,58 @@ export OPENAI_BASE_URL=https://api.openai.com/v1
 export OPENAI_API_KEY=sk-xxxxxxxx
 export OPENAI_MODEL=gpt-4.1-mini
 export REPORT_LANGS=zh
-export DIGEST_REPO=your-username/big_model_radar  # optional; omit to only write files
+export DIGEST_REPO=your-username/big_model_radar  # 可选，留空则仅写入本地文件
 
 pnpm start
 ```
 
-## Output format
+## 输出格式
 
-Files are written to `digests/YYYY-MM-DD/`:
+文件写入 `digests/YYYY-MM-DD/`：
 
-| File | Content | GitHub Issue label |
-|------|---------|-------------------|
-| `ai-cli.md` | CLI digest — cross-tool comparison + per-tool details | `digest` |
-| `ai-agents.md` | OpenClaw deep report + cross-ecosystem comparison + 10 peer details | `openclaw` |
-| `ai-web.md` | Official web content report (only written when new content exists) | `web` |
-| `ai-trending.md` | GitHub AI trending report — repos classified by dimension + trend signals (only written when data is available) | `trending` |
-| `ai-hn.md` | Hacker News AI community digest — top stories + sentiment analysis (only written when fetch succeeds) | `hn` |
+| 文件 | 内容 | GitHub Issue 标签 |
+|------|------|------------------|
+| `ai-cli.md` | CLI 简报 — 跨工具横向对比 + 各工具详细报告 | `digest` |
+| `ai-agents.md` | OpenClaw 深度报告 + 横向生态对比 + 10 个同赛道项目详情 | `openclaw` |
+| `ai-web.md` | 官网内容报告（仅在有新内容时生成） | `web` |
+| `ai-trending.md` | GitHub AI 趋势热榜 — 按维度分类 + 趋势信号分析（仅在有数据时生成） | `trending` |
+| `ai-hn.md` | Hacker News AI 社区动态 — 热门帖子分类 + 情绪分析（仅在抓取成功时生成） | `hn` |
 
-A shared state file `digests/web-state.json` tracks which web URLs have been seen; it is committed alongside the daily digests.
-
-Each report is generated in both Chinese (`ai-cli.md`) and English (`ai-cli-en.md`). The Web UI sidebar shows ZH / EN toggle buttons for reports that have both variants.
+`digests/web-state.json` 用于记录已处理的 URL，随每日简报一并提交。
 
 ---
 
-`ai-cli.md` / `ai-cli-en.md` structure:
+`ai-cli.md` 结构：
 ```
-## Cross-Tool Comparison
-  Ecosystem overview / Activity comparison table / Shared themes / Differentiation / Trend signals
+## 横向对比
+  生态全景 / 活跃度对比表 / 共同需求 / 差异定位 / 趋势信号
 
-## Per-Tool Reports
-  <details> Claude Code    — [Claude Code Skills Highlights]
-                             Top skills / Community demand trends / High-potential pending skills
+## 各工具详细报告
+  <details> Claude Code    — [Claude Code Skills 社区热点]
+                             热门 Skills 排行 / 社区需求趋势 / 高潜力待合并 Skills
                              ---
-                             Today's summary / Hot issues / PR progress / Trends
-  <details> OpenAI Codex   — Today's summary / Hot issues / PR progress / Trends
+                             今日速览 / 热点 Issues / PR 进展 / 趋势
+  <details> OpenAI Codex   — 今日速览 / 热点 Issues / PR 进展 / 趋势
   <details> Gemini CLI     — ...
-  <details> GitHub Copilot CLI — ...
   <details> Kimi Code CLI  — ...
   <details> OpenCode       — ...
   <details> Qwen Code      — ...
 ```
 
-`ai-agents.md` / `ai-agents-en.md` structure:
+`ai-agents.md` 结构：
 ```
-Issues: N | PRs: N | Projects covered: 10
+Issues: N | PRs: N | 覆盖项目: 10 个
 
-## OpenClaw Deep Dive
-  Today's summary / Releases / Project progress / Community highlights /
-  Bug stability / Feature requests / User feedback / Backlog
+## OpenClaw 项目深度报告
+  今日速览 / 版本发布 / 项目进展 / 社区热点 /
+  Bug稳定性 / 功能请求 / 用户反馈 / 待处理积压
 
-## Cross-Ecosystem Comparison
-  Ecosystem overview / Activity table / OpenClaw positioning /
-  Shared technical directions / Differentiation / Community maturity / Trend signals
+## 横向生态对比
+  生态全景 / 活跃度对比表 / OpenClaw定位分析 /
+  共同技术方向 / 差异化定位 / 社区热度与成熟度 / 趋势信号
 
-## Peer Project Reports
-  <details> Zeroclaw   — Today's summary / Releases / Progress / ... (8 sections)
+## 同赛道项目详细报告
+  <details> Zeroclaw   — 今日速览 / 版本发布 / 项目进展 / ...（8节）
   <details> EasyClaw   — ...
   <details> LobsterAI  — ...
   <details> ZeptoClaw  — ...
@@ -297,80 +294,60 @@ Issues: N | PRs: N | Projects covered: 10
   <details> CoPaw      — ...
 ```
 
-`ai-web.md` / `ai-web-en.md` structure:
+`ai-web.md` 结构：
 ```
-Sources: anthropic.com (N articles) + openai.com (N articles)
+数据来源: anthropic.com (N 篇) + openai.com (N 篇)
 
-Today's summary
-Anthropic / Claude highlights  (news / research / engineering / learn)
-OpenAI highlights              (research / release / company / safety / ...)
-Strategic signals
-Notable details
-[First full crawl also includes: Content landscape overview]
-```
-
-`ai-trending.md` / `ai-trending-en.md` structure:
-```
-Sources: GitHub Trending + GitHub Search API
-
-Today's summary
-Top repos by dimension
-  🔧 AI Infrastructure  — frameworks / SDKs / inference engines / CLIs
-  🤖 AI Agents          — agent frameworks / multi-agent / automation
-  📦 AI Applications    — vertical products / solutions
-  🧠 Models & Training  — model weights / training frameworks / fine-tuning
-  🔍 RAG & Knowledge    — vector databases / retrieval augmentation
-Trend signal analysis
-Community focus
+今日速览
+Anthropic/Claude 内容精选  (news / research / engineering / learn)
+OpenAI 内容精选            (research / release / company / safety / ...)
+战略信号解读
+值得关注的细节
+[首次全量时额外包含: 内容格局总览]
 ```
 
-`ai-hn.md` / `ai-hn-en.md` structure:
+`ai-trending.md` 结构：
 ```
-Sources: Hacker News (top-30 AI stories, last 24h)
+数据来源: GitHub Trending + GitHub Search API
 
-Today's summary
-Top stories & discussions
-  🔬 Models & Research  — new model releases / papers / benchmarks
-  🛠️ Tools & Engineering — open-source projects / frameworks / engineering practice
-  🏢 Industry news      — company news / funding / product launches
-  💬 Opinions & debate  — Ask HN / Show HN / hot threads
-Community sentiment signals
-Worth reading
-```
-
-`ai-weekly.md` / `ai-weekly-en.md` structure (generated every Monday):
-```
-Coverage: YYYY-MM-DD ~ YYYY-MM-DD  (last 7 daily digests)
-
-Weekly highlights
-Key trends & developments
-Notable releases
-Community momentum
-Outlook
+今日速览
+各维度热门项目
+  🔧 AI 基础工具      — 框架 / SDK / 推理引擎 / CLI
+  🤖 AI 智能体/工作流 — Agent 框架 / 多智能体 / 自动化
+  📦 AI 应用          — 垂直场景产品 / 解决方案
+  🧠 大模型/训练      — 模型权重 / 训练框架 / 微调工具
+  🔍 RAG/知识库       — 向量数据库 / 检索增强
+趋势信号分析
+社区关注热点
 ```
 
-`ai-monthly.md` / `ai-monthly-en.md` structure (generated on the 1st of each month):
+`ai-hn.md` 结构：
 ```
-Sources: N weekly reports  (or sampled daily reports if fewer than 2 weeklies available)
+数据来源: Hacker News（top-30 AI 帖子，过去 24 小时）
 
-Month in review
-Major themes
-Ecosystem shifts
-Top projects & releases
-Looking ahead
+今日速览
+热门新闻与讨论
+  🔬 模型与研究   — 新模型发布 / 论文 / 基准测试
+  🛠️ 工具与工程   — 开源项目 / 框架 / 工程实践
+  🏢 产业动态     — 公司新闻 / 融资 / 产品发布
+  💬 观点与争议   — Ask HN / Show HN / 热议帖子
+社区情绪信号
+值得深读
 ```
 
-Historical digests are stored in [`digests/`](./digests/). Published issues are tagged by type: [`digest`](../../issues?label=digest) · [`openclaw`](../../issues?label=openclaw) · [`web`](../../issues?label=web) · [`trending`](../../issues?label=trending) · [`hn`](../../issues?label=hn) · [`weekly`](../../issues?label=weekly) · [`monthly`](../../issues?label=monthly).
+历史简报存储在 [`digests/`](./digests/)。已发布的 Issues 按类型打标签：[`digest`](../../issues?label=digest) · [`openclaw`](../../issues?label=openclaw) · [`web`](../../issues?label=web) · [`trending`](../../issues?label=trending) · [`hn`](../../issues?label=hn)。
 
-## Schedule
+## 定时计划
 
-| Workflow | Cron | UTC | CST |
-|----------|------|-----|-----|
-| Daily digest | `0 0 * * *` | 00:00 daily | 08:00 daily |
-| Weekly rollup | `0 1 * * 1` | 01:00 Monday | 09:00 Monday |
-| Monthly rollup | `0 2 1 * *` | 02:00 on the 1st | 10:00 on the 1st |
+默认 cron 表达式 `"0 0 * * *"` = **00:00 UTC = 08:00 CST**。
 
-To change the schedule, edit the cron expressions in the corresponding workflow files under `.github/workflows/`.
+修改时间请编辑 `.github/workflows/daily-digest.yml` 中的 cron 表达式：
+
+| CST   | UTC cron      |
+|-------|---------------|
+| 08:00 | `0 0 * * *`  |
+| 09:00 | `0 1 * * *`  |
+| 10:00 | `0 2 * * *`  |
 
 ## Star History
 
