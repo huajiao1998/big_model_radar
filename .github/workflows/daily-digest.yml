@@ -36,9 +36,9 @@ jobs:
       - name: Run daily digest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL || secrets.ANTHROPIC_BASE_URL }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL || secrets.OPENAI_BASE_URL || secrets.ANTHROPIC_BASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.ANTHROPIC_API_KEY }}
-          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL || secrets.ANTHROPIC_MODEL }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || secrets.OPENAI_MODEL || secrets.ANTHROPIC_MODEL }}
           REPORT_LANGS: ${{ vars.REPORT_LANGS || secrets.REPORT_LANGS }}
           DIGEST_REPO: ${{ github.repository }}
         run: pnpm start
