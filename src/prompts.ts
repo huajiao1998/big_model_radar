@@ -199,8 +199,15 @@ export function buildPeerPrompt(
   const noneStr = lang === "en" ? "None" : "无";
   const issuesText = sampledIssues.map((i) => formatItem(i, lang)).join("\n") || noneStr;
   const prsText = sampledPrs.map((p) => formatItem(p, lang)).join("\n") || noneStr;
+
+  // Repos that disabled GitHub PRs (useDiscussions) publish their merged
+  // changes through Releases, whose changelog doubles as the merge summary
+  // (features merged / issues fixed) — keep a longer excerpt of it.
+  const releaseBodyLimit = cfg.useDiscussions ? 1600 : 300;
   const releasesText = releases.length
-    ? releases.map((r) => `- ${r.tag_name}: ${r.name}\n  ${(r.body ?? "").slice(0, 300)}`).join("\n")
+    ? releases
+        .map((r) => `- ${r.tag_name}: ${r.name}\n  ${(r.body ?? "").slice(0, releaseBodyLimit)}`)
+        .join("\n")
     : noneStr;
 
   const openIssues = issues.filter((i) => i.state === "open").length;
@@ -211,23 +218,40 @@ export function buildPeerPrompt(
   const issueSampleNote = sampleNote(totalIssues, sampledIssues.length, lang);
   const prSampleNote = sampleNote(totalPrs, sampledPrs.length, lang);
 
+  const isEn = lang === "en";
+  // useDiscussions repos have no Issues/PR endpoints: drop their empty
+  // sections and explain that the Releases changelog IS the merge summary,
+  // so the model never misreads "0 PRs" as "no merges / no progress".
+  const overviewLines = cfg.useDiscussions
+    ? isEn
+      ? `- Discussions updated in last 24h: ${discussions.length}\n- GitHub Issues/PRs are disabled on this repo; merged code lands via Releases — the changelog below is the merge summary (features merged / issues fixed)\n- New releases: ${releases.length}`
+      : `- 过去24小时 Discussions 更新：${discussions.length} 条\n- 该仓库未启用 GitHub Issues/PR；代码合并经 Releases 落地 —— 下方 changelog 即合并摘要（本次合并的功能 / 修复的问题）\n- 新版本发布：${releases.length} 个`
+    : isEn
+      ? `- Issues updated in last 24h: ${totalIssues} (open/active: ${openIssues}, closed: ${closedIssues})\n- PRs updated in last 24h: ${totalPrs} (open: ${openPrs}, merged/closed: ${mergedPrs})\n- New releases: ${releases.length}`
+      : `- 过去24小时 Issues 更新：${totalIssues} 条（新开/活跃: ${openIssues}，已关闭: ${closedIssues}）\n- 过去24小时 PR 更新：${totalPrs} 条（待合并: ${openPrs}，已合并/关闭: ${mergedPrs}）\n- 新版本发布：${releases.length} 个`;
+
+  const issuesPrsSection = cfg.useDiscussions
+    ? ""
+    : isEn
+      ? `## Latest Issues ${issueSampleNote}\n${issuesText}\n\n## Latest Pull Requests ${prSampleNote}\n${prsText}`
+      : `## 最新 Issues ${issueSampleNote}\n${issuesText}\n\n## 最新 Pull Requests ${prSampleNote}\n${prsText}`;
+
+  const mergeGuidance = cfg.useDiscussions
+    ? isEn
+      ? 'Important: this project has no GitHub PRs — treat the Latest Releases changelog above as the merge summary. In the Releases / Project Progress sections, list the features that were merged and the issues that were fixed (with version tags), and never claim "no merges" just because the PR count is 0.\n'
+      : '重要：该项目未启用 GitHub PR —— 请把上方 Releases changelog 当作合并摘要。在 版本发布/项目进展 小节中写明本次发版合并上线的功能与修复的问题（注明版本号）；不要仅因 PR 数为 0 就写"无合并/无进展"。\n'
+    : "";
+
   if (lang === "en") {
     return `You are an analyst of AI agent and personal AI assistant open-source projects. Based on the following GitHub data from ${cfg.name} (github.com/${cfg.repo}), generate a project digest for ${dateStr}.
 
 # Data Overview
-- Issues updated in last 24h: ${totalIssues} (open/active: ${openIssues}, closed: ${closedIssues})
-- PRs updated in last 24h: ${totalPrs} (open: ${openPrs}, merged/closed: ${mergedPrs})
-- New releases: ${releases.length}
+${overviewLines}
 
 ## Latest Releases
 ${releasesText}
 
-## Latest Issues ${issueSampleNote}
-${issuesText}
-
-## Latest Pull Requests ${prSampleNote}
-${prsText}
-${discussionsBlock(cfg, discussions, lang)}
+${issuesPrsSection}${discussionsBlock(cfg, discussions, lang)}
 
 ---
 
@@ -241,27 +265,19 @@ Generate a structured English ${cfg.name} project digest with the following sect
 6. **Feature Requests & Roadmap Signals** - User-requested features, predict which might be in next version
 7. **User Feedback Summary** - Real user pain points, use cases, satisfaction/dissatisfaction
 8. **Backlog Watch** - Long-unanswered important Issues or PRs needing maintainer attention
-
-Style: objective, data-driven, highlighting project health. Include GitHub links for each item.
+${mergeGuidance}Style: objective, data-driven, highlighting project health. Include GitHub links for each item.
 `;
   }
 
   return `你是一位 AI 智能体与个人 AI 助手领域开源项目分析师。请根据以下来自 ${cfg.name} (github.com/${cfg.repo}) 的 GitHub 数据，生成 ${dateStr} 的项目动态日报。
 
 # 数据概览
-- 过去24小时 Issues 更新：${totalIssues} 条（新开/活跃: ${openIssues}，已关闭: ${closedIssues}）
-- 过去24小时 PR 更新：${totalPrs} 条（待合并: ${openPrs}，已合并/关闭: ${mergedPrs}）
-- 新版本发布：${releases.length} 个
+${overviewLines}
 
 ## 最新 Releases
 ${releasesText}
 
-## 最新 Issues ${issueSampleNote}
-${issuesText}
-
-## 最新 Pull Requests ${prSampleNote}
-${prsText}
-${discussionsBlock(cfg, discussions, lang)}
+${issuesPrsSection}${discussionsBlock(cfg, discussions, lang)}
 
 ---
 
@@ -275,8 +291,7 @@ ${discussionsBlock(cfg, discussions, lang)}
 6. **功能请求与路线图信号** - 用户提出的新功能需求，结合已有 PR 判断哪些可能被纳入下一版本
 7. **用户反馈摘要** - 从 Issues 评论中提炼真实用户痛点、使用场景、满意/不满意的地方
 8. **待处理积压** - 长期未响应的重要 Issue 或 PR，提醒维护者关注
-
-语言要求：客观专业，数据驱动，突出项目健康度。每个条目附上 GitHub 链接。
+${mergeGuidance}语言要求：客观专业，数据驱动，突出项目健康度。每个条目附上 GitHub 链接。
 `;
 }
 
