@@ -19,6 +19,7 @@ import {
   type GitHubRelease,
   fetchRecentItems,
   fetchRecentReleases,
+  fetchRecentDiscussions,
   fetchSkillsData,
   createGitHubIssue,
 } from "./github.ts";
@@ -73,6 +74,7 @@ interface RepoFetch {
   issues: GitHubItem[];
   prs: GitHubItem[];
   releases: GitHubRelease[];
+  discussions: GitHubItem[];
 }
 
 // ---------------------------------------------------------------------------
@@ -97,16 +99,20 @@ async function fetchAllData(
   const [fetched, skillsData, webResults, trendingData, hnData] = await Promise.all([
     Promise.all(
       allConfigs.map(async (cfg) => {
-        const [issuesRaw, prs, releases] = await Promise.all([
-          fetchRecentItems(cfg, "issues", since),
-          fetchRecentItems(cfg, "pulls", since),
+        // Repos that disabled Issues/PRs (useDiscussions) are fetched from
+        // GitHub Discussions instead — their pulls endpoint returns 404.
+        const [issuesRaw, prs, releases, discussions] = await Promise.all([
+          cfg.useDiscussions ? Promise.resolve<GitHubItem[]>([]) : fetchRecentItems(cfg, "issues", since),
+          cfg.useDiscussions ? Promise.resolve<GitHubItem[]>([]) : fetchRecentItems(cfg, "pulls", since),
           fetchRecentReleases(cfg.repo, since),
+          cfg.useDiscussions ? fetchRecentDiscussions(cfg.repo, since) : Promise.resolve<GitHubItem[]>([]),
         ]);
         const issues = issuesRaw.filter((i) => !i.pull_request);
         console.log(
-          `  [${cfg.id}] issues: ${issues.length}, prs: ${prs.length}, releases: ${releases.length}`,
+          `  [${cfg.id}] issues: ${issues.length}, prs: ${prs.length}, releases: ${releases.length}` +
+            (cfg.useDiscussions ? `, discussions: ${discussions.length}` : ""),
         );
-        return { cfg, issues, prs, releases };
+        return { cfg, issues, prs, releases, discussions };
       }),
     ),
     ENABLE_CLI_DIGEST
@@ -181,16 +187,18 @@ async function generateSummaries(
   const [cliDigests, openclawSummary, skillsSummary, peerDigests, trendingSummary] = await Promise.all([
     ENABLE_CLI_DIGEST
       ? Promise.all(
-          fetchedCli.map(async ({ cfg, issues, prs, releases }): Promise<RepoDigest> => {
-            const hasData = issues.length || prs.length || releases.length;
+          fetchedCli.map(async ({ cfg, issues, prs, releases, discussions }): Promise<RepoDigest> => {
+            const hasData = issues.length || prs.length || releases.length || discussions.length;
             if (!hasData) {
               console.log(`  [${cfg.id}] No activity, skipping LLM call`);
-              return { config: cfg, issues, prs, releases, summary: noActivity };
+              return { config: cfg, issues, prs, releases, discussions, summary: noActivity };
             }
             console.log(`  [${cfg.id}] Calling LLM for summary...`);
             try {
-              const summary = await callLlm(buildCliPrompt(cfg, issues, prs, releases, dateStr, lang));
-              return { config: cfg, issues, prs, releases, summary };
+              const summary = await callLlm(
+                buildCliPrompt(cfg, issues, prs, releases, dateStr, lang, discussions),
+              );
+              return { config: cfg, issues, prs, releases, discussions, summary };
             } catch (err) {
               console.error(`  [${cfg.id}] LLM call failed: ${err}`);
               return {
@@ -198,6 +206,7 @@ async function generateSummaries(
                 issues,
                 prs,
                 releases,
+                discussions,
                 summary: summaryFailed,
               };
             }
@@ -205,15 +214,18 @@ async function generateSummaries(
         )
       : Promise.resolve([] as RepoDigest[]),
     (async () => {
-      const { cfg, issues, prs, releases } = fetchedOpenclaw;
-      const hasData = issues.length || prs.length || releases.length;
+      const { cfg, issues, prs, releases, discussions } = fetchedOpenclaw;
+      const hasData = issues.length || prs.length || releases.length || discussions.length;
       if (!hasData) {
         console.log(`  [openclaw] No activity, skipping LLM call`);
         return noActivity;
       }
       console.log(`  [openclaw] Calling LLM for OpenClaw report...`);
       try {
-        return await callLlm(buildPeerPrompt(cfg, issues, prs, releases, dateStr, 50, 30, lang), 32000);
+        return await callLlm(
+          buildPeerPrompt(cfg, issues, prs, releases, dateStr, 50, 30, lang, discussions),
+          32000,
+        );
       } catch (err) {
         console.error(`  [openclaw] LLM call failed: ${err}`);
         return summaryFailed;
@@ -231,11 +243,11 @@ async function generateSummaries(
         })()
       : Promise.resolve(""),
     Promise.all(
-      fetchedPeers.map(async ({ cfg, issues, prs, releases }): Promise<RepoDigest> => {
-        const hasData = issues.length || prs.length || releases.length;
+      fetchedPeers.map(async ({ cfg, issues, prs, releases, discussions }): Promise<RepoDigest> => {
+        const hasData = issues.length || prs.length || releases.length || discussions.length;
         if (!hasData) {
           console.log(`  [${cfg.id}] No activity, skipping LLM call`);
-          return { config: cfg, issues, prs, releases, summary: noActivity };
+          return { config: cfg, issues, prs, releases, discussions, summary: noActivity };
         }
         console.log(`  [${cfg.id}] Calling LLM for peer summary...`);
         try {
@@ -244,8 +256,9 @@ async function generateSummaries(
             issues,
             prs,
             releases,
+            discussions,
             summary: await callLlm(
-              buildPeerPrompt(cfg, issues, prs, releases, dateStr, undefined, undefined, lang),
+              buildPeerPrompt(cfg, issues, prs, releases, dateStr, undefined, undefined, lang, discussions),
               32000,
             ),
           };
@@ -256,6 +269,7 @@ async function generateSummaries(
             issues,
             prs,
             releases,
+            discussions,
             summary: summaryFailed,
           };
         }
@@ -676,6 +690,7 @@ async function main(): Promise<void> {
       issues: fetchedOpenclaw.issues,
       prs: fetchedOpenclaw.prs,
       releases: fetchedOpenclaw.releases,
+      discussions: fetchedOpenclaw.discussions,
       summary: zhSummaries.openclawSummary,
     };
     [comparison, peersComparison] = await Promise.all([
@@ -691,6 +706,7 @@ async function main(): Promise<void> {
       issues: fetchedOpenclaw.issues,
       prs: fetchedOpenclaw.prs,
       releases: fetchedOpenclaw.releases,
+      discussions: fetchedOpenclaw.discussions,
       summary: enSummaries.openclawSummary,
     };
     [enComparison, enPeersComparison] = await Promise.all([

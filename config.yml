@@ -57,3 +57,9 @@ openclaw_peers:
     repo: AstrBotDevs/AstrBot
     name: AstrBot
     paginated: true
+  - id: deepseek-harness
+    repo: deepseek-ai/deepseek-harness
+    name: DeepSeek Harness
+    # 该仓库关闭了 Issues / Pull Requests（社区在 GitHub Discussions），
+    # 启用 use_discussions 后从 Discussions 抓取社区动态（GraphQL）。
+    use_discussions: true

@@ -17,6 +17,8 @@ interface RawRepoEntry {
   repo: string;
   name: string;
   paginated?: boolean;
+  /** Track GitHub Discussions instead of Issues/PRs (repos with them disabled). */
+  use_discussions?: boolean;
 }
 
 interface RawConfig {
@@ -82,7 +84,13 @@ const DEFAULT_OPENCLAW_PEERS: RepoConfig[] = [
 // ---------------------------------------------------------------------------
 
 function toRepoConfig(e: RawRepoEntry): RepoConfig {
-  return { id: e.id, repo: e.repo, name: e.name, ...(e.paginated ? { paginated: true } : {}) };
+  return {
+    id: e.id,
+    repo: e.repo,
+    name: e.name,
+    ...(e.paginated ? { paginated: true } : {}),
+    ...(e.use_discussions ? { useDiscussions: true } : {}),
+  };
 }
 
 export function loadConfig(configPath = "config.yml"): RadarConfig {

@@ -16,6 +16,7 @@ export interface RepoDigest {
   issues: GitHubItem[];
   prs: GitHubItem[];
   releases: GitHubRelease[];
+  discussions: GitHubItem[];
   summary: string;
 }
 
@@ -24,8 +25,8 @@ export interface RepoDigest {
 // ---------------------------------------------------------------------------
 
 export function formatItem(item: GitHubItem, lang: "zh" | "en" = "zh"): string {
-  const labels = item.labels.map((l) => l.name).join(", ");
-  const labelStr = labels ? ` [${labels}]` : "";
+  const labelNames = [...item.labels.map((l) => l.name), ...(item.category ? [item.category] : [])];
+  const labelStr = labelNames.length ? ` [${labelNames.join(", ")}]` : "";
   const body = (item.body ?? "").replace(/\n/g, " ").trim().slice(0, 300);
   const ellipsis = (item.body ?? "").length > 300 ? "..." : "";
   const t =
@@ -53,6 +54,7 @@ export function formatItem(item: GitHubItem, lang: "zh" | "en" = "zh"): string {
 
 const CLI_ISSUE_LIMIT = 30;
 const CLI_PR_LIMIT = 20;
+const DISCUSSION_LIMIT = 15;
 
 /** Sort by comment count desc, take top N. */
 function topN(items: GitHubItem[], n: number): GitHubItem[] {
@@ -68,6 +70,25 @@ function sampleNote(total: number, sampled: number, lang: "zh" | "en" = "zh"): s
   return total > sampled ? `（共 ${total} 条，以下展示评论数最多的 ${sampled} 条）` : `（共 ${total} 条）`;
 }
 
+/**
+ * Renders a "Latest Discussions" data + guidance block for repos whose
+ * Issues/PRs are disabled and community discussion lives in GitHub
+ * Discussions (e.g. deepseek-ai/deepseek-harness). Returns an empty string
+ * for regular repos so their prompts stay unchanged.
+ */
+function discussionsBlock(cfg: RepoConfig, discussions: GitHubItem[], lang: "zh" | "en"): string {
+  if (!cfg.useDiscussions) return "";
+  const sampled = topN(discussions, DISCUSSION_LIMIT);
+  const text = sampled.map((d) => formatItem(d, lang)).join("\n") || (lang === "en" ? "None" : "无");
+  const note = sampleNote(discussions.length, sampled.length, lang);
+  const heading = lang === "en" ? "Latest Discussions" : "最新 Discussions";
+  const guidance =
+    lang === "en"
+      ? "Note: This project disabled Issues/Pull Requests — its community discussion happens in GitHub Discussions (see the data above). Base community-related sections (hot topics, feature requests, user feedback) on the Discussions; do not treat the empty Issues/PRs as inactivity."
+      : "注意：该项目未启用 Issues / Pull Requests，社区讨论集中在 GitHub Discussions（见上方数据）。社区热点、功能需求、用户反馈等小节请以 Discussions 为素材，不要因 Issues/PR 为空而误判为无活动。";
+  return `\n## ${heading} ${note}\n${text}\n\n${guidance}`;
+}
+
 // ---------------------------------------------------------------------------
 // Prompts
 // ---------------------------------------------------------------------------
@@ -79,6 +100,7 @@ export function buildCliPrompt(
   releases: GitHubRelease[],
   dateStr: string,
   lang: "zh" | "en" = "zh",
+  discussions: GitHubItem[] = [],
 ): string {
   const sampledIssues = topN(issues, CLI_ISSUE_LIMIT);
   const sampledPrs = topN(prs, CLI_PR_LIMIT);
@@ -108,6 +130,7 @@ ${issuesText}
 
 ## Latest Pull Requests (updated in last 24h)${prNote}
 ${prsText}
+${discussionsBlock(cfg, discussions, lang)}
 
 ---
 
@@ -136,6 +159,7 @@ ${issuesText}
 
 ## 最新 Pull Requests（过去24小时内更新）${prNote}
 ${prsText}
+${discussionsBlock(cfg, discussions, lang)}
 
 ---
 
@@ -164,6 +188,7 @@ export function buildPeerPrompt(
   issueLimit = PEER_ISSUE_LIMIT,
   prLimit = PEER_PR_LIMIT,
   lang: "zh" | "en" = "zh",
+  discussions: GitHubItem[] = [],
 ): string {
   const totalIssues = issues.length;
   const totalPrs = prs.length;
@@ -202,6 +227,7 @@ ${issuesText}
 
 ## Latest Pull Requests ${prSampleNote}
 ${prsText}
+${discussionsBlock(cfg, discussions, lang)}
 
 ---
 
@@ -235,6 +261,7 @@ ${issuesText}
 
 ## 最新 Pull Requests ${prSampleNote}
 ${prsText}
+${discussionsBlock(cfg, discussions, lang)}
 
 ---
 
@@ -268,7 +295,7 @@ export function buildPeersComparisonPrompt(
 
   const peerSections = peerDigests
     .map((d) => {
-      const hasData = d.issues.length || d.prs.length || d.releases.length;
+      const hasData = d.issues.length || d.prs.length || d.releases.length || d.discussions.length;
       if (!hasData) return `## ${d.config.name} (github.com/${d.config.repo})\n${noActivityStr}`;
       return `## ${d.config.name} (github.com/${d.config.repo})\n${d.summary}`;
     })
@@ -394,7 +421,7 @@ export function buildComparisonPrompt(
 
   const sections = digests
     .map((d) => {
-      const hasData = d.issues.length || d.prs.length || d.releases.length;
+      const hasData = d.issues.length || d.prs.length || d.releases.length || d.discussions.length;
       if (!hasData) return `## ${d.config.name} (github.com/${d.config.repo})\n${noActivityStr}`;
       return `## ${d.config.name} (github.com/${d.config.repo})\n${d.summary}`;
     })

@@ -19,6 +19,12 @@ export interface RepoConfig {
    * Use for high-volume repos with many daily updates.
    */
   paginated?: boolean;
+  /**
+   * Track GitHub Discussions instead of Issues/PRs for this repo.
+   * Use for repos that disabled Issues and Pull Requests and run their
+   * community in Discussions (e.g. deepseek-ai/deepseek-harness).
+   */
+  useDiscussions?: boolean;
 }
 
 export interface GitHubUser {
@@ -46,6 +52,8 @@ export interface GitHubItem {
   body?: string | null;
   html_url: string;
   pull_request?: unknown;
+  /** GitHub Discussions category name, populated when items come from Discussions. */
+  category?: string;
 }
 
 export interface GitHubRelease {
@@ -144,6 +152,129 @@ export async function fetchRecentReleases(repo: string, since: Date): Promise<Gi
     per_page: "10",
   });
   return releases.filter((r) => new Date(r.published_at) >= since);
+}
+
+// ---------------------------------------------------------------------------
+// GitHub Discussions (GraphQL — the REST endpoint ignores sort/since and only
+// returns discussions in ascending number order, unusable for "recently
+// updated" queries on high-volume repos)
+// ---------------------------------------------------------------------------
+
+/** Max discussion pages to fetch per repo per run (100 discussions/page). */
+const MAX_DISCUSSION_PAGES = 3;
+
+const DISCUSSIONS_QUERY = `
+query Discussions($owner: String!, $name: String!, $cursor: String) {
+  repository(owner: $owner, name: $name) {
+    discussions(first: 100, after: $cursor, orderBy: {field: UPDATED_AT, direction: DESC}) {
+      pageInfo { hasNextPage endCursor }
+      nodes {
+        number
+        title
+        url
+        body
+        createdAt
+        updatedAt
+        category { name }
+        author { login }
+        comments { totalCount }
+      }
+    }
+  }
+}`;
+
+interface DiscussionNode {
+  number: number;
+  title: string;
+  url: string;
+  body?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  category?: { name?: string } | null;
+  author?: { login?: string } | null;
+  comments?: { totalCount?: number } | null;
+}
+
+interface DiscussionsResponse {
+  repository?: {
+    discussions?: {
+      pageInfo: { hasNextPage: boolean; endCursor: string | null };
+      nodes: DiscussionNode[];
+    };
+  };
+}
+
+async function githubGraphql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
+  const resp = await fetch("https://api.github.com/graphql", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env["GITHUB_TOKEN"] ?? ""}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+  if (!resp.ok) throw new Error(`GitHub GraphQL error ${resp.status}: ${await resp.text()}`);
+  const payload = (await resp.json()) as { data?: T; errors?: { message: string }[] };
+  if (payload.errors?.length) {
+    throw new Error(`GitHub GraphQL error: ${payload.errors.map((e) => e.message).join("; ")}`);
+  }
+  return payload.data as T;
+}
+
+function mapDiscussion(n: DiscussionNode): GitHubItem {
+  return {
+    number: n.number,
+    title: n.title,
+    // Discussions have no open/closed lifecycle surfaced in this query.
+    state: "open",
+    user: { login: n.author?.login ?? "unknown" },
+    labels: [],
+    created_at: n.createdAt,
+    updated_at: n.updatedAt,
+    comments: n.comments?.totalCount ?? 0,
+    body: (n.body ?? "").slice(0, 2000) || null,
+    html_url: n.url,
+    category: n.category?.name,
+  };
+}
+
+/**
+ * Fetch discussions updated since `since`, newest-updated first (GraphQL).
+ * Used for repos that disabled Issues/PRs (e.g. deepseek-ai/deepseek-harness).
+ */
+export async function fetchRecentDiscussions(repo: string, since: Date): Promise<GitHubItem[]> {
+  const [owner, name] = repo.split("/");
+  if (!owner || !name) throw new Error(`Invalid repo for discussions: ${repo}`);
+
+  const items: GitHubItem[] = [];
+  let cursor: string | null = null;
+
+  for (let page = 0; page < MAX_DISCUSSION_PAGES; page++) {
+    const result: DiscussionsResponse = await githubGraphql<DiscussionsResponse>(DISCUSSIONS_QUERY, {
+      owner,
+      name,
+      cursor,
+    });
+    const discussions = result.repository?.discussions;
+    if (!discussions) break;
+
+    // Nodes are sorted by updated_at desc; once one falls before `since`,
+    // every later node/page is older too.
+    const fresh: DiscussionNode[] = [];
+    for (const node of discussions.nodes) {
+      if (new Date(node.updatedAt) >= since) fresh.push(node);
+      else break;
+    }
+    for (const node of fresh) items.push(mapDiscussion(node));
+
+    const pageInfo = discussions.pageInfo;
+    const hasNextPage = pageInfo.hasNextPage;
+    const endCursor = pageInfo.endCursor;
+    if (!hasNextPage || !endCursor || fresh.length < discussions.nodes.length) break;
+    cursor = endCursor;
+  }
+  return items;
 }
 
 export async function ensureLabel(name: string, color: string): Promise<void> {
