@@ -160,8 +160,11 @@ export async function fetchRecentReleases(repo: string, since: Date): Promise<Gi
 // updated" queries on high-volume repos)
 // ---------------------------------------------------------------------------
 
-/** Max discussion pages to fetch per repo per run (100 discussions/page). */
-const MAX_DISCUSSION_PAGES = 3;
+/**
+ * Max discussion pages to fetch per repo per run (100 discussions/page).
+ * Aligned with MAX_PAGES = 5 used for paginated issues/PRs (up to 500 items).
+ */
+const MAX_DISCUSSION_PAGES = 5;
 
 const DISCUSSIONS_QUERY = `
 query Discussions($owner: String!, $name: String!, $cursor: String) {
