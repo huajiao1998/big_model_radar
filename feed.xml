@@ -6,7 +6,14 @@
     <description>AI 开源生态每日简报 · Daily AI ecosystem digest</description>
     <language>zh-CN</language>
     <atom:link href="https://huajiao1998.github.io/big_model_radar/feed.xml" rel="self" type="application/rss+xml"/>
-    <lastBuildDate>Thu, 17 Sep 2026 23:48:44 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 18 Sep 2026 23:45:23 +0000</lastBuildDate>
+    <item>
+      <title>AI Agents 生态日报 2026-09-19</title>
+      <link>https://huajiao1998.github.io/big_model_radar/#2026-09-19/ai-agents</link>
+      <guid isPermaLink="true">https://huajiao1998.github.io/big_model_radar/#2026-09-19/ai-agents</guid>
+      <pubDate>Sat, 19 Sep 2026 00:00:00 +0000</pubDate>
+      <description>AI Agents 生态日报 2026-09-19</description>
+    </item>
     <item>
       <title>AI Agents 生态日报 2026-09-18</title>
       <link>https://huajiao1998.github.io/big_model_radar/#2026-09-18/ai-agents</link>
@@ -209,13 +216,6 @@
       <guid isPermaLink="true">https://huajiao1998.github.io/big_model_radar/#2026-08-16/ai-agents</guid>
       <pubDate>Sun, 16 Aug 2026 00:00:00 +0000</pubDate>
       <description>AI Agents 生态日报 2026-08-16</description>
-    </item>
-    <item>
-      <title>AI Agents 生态日报 2026-08-12</title>
-      <link>https://huajiao1998.github.io/big_model_radar/#2026-08-12/ai-agents</link>
-      <guid isPermaLink="true">https://huajiao1998.github.io/big_model_radar/#2026-08-12/ai-agents</guid>
-      <pubDate>Wed, 12 Aug 2026 00:00:00 +0000</pubDate>
-      <description>AI Agents 生态日报 2026-08-12</description>
     </item>
   </channel>
 </rss>
