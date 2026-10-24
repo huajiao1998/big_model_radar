@@ -1,6 +1,12 @@
 {
-  "generated": "2026-10-23T00:15:42.644Z",
+  "generated": "2026-10-24T00:09:09.787Z",
   "dates": [
+    {
+      "date": "2026-10-24",
+      "reports": [
+        "ai-agents"
+      ]
+    },
     {
       "date": "2026-10-23",
       "reports": [
